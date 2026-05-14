@@ -216,3 +216,33 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+#Node modules
+node_modules
+node_modules/
+dist/
+dist
+.env
+coverage
+postgres-data
+generated
+
+node_modules/
+dist/
+coverage/
+
+.env
+.env.local
+
+.prisma
+*.db
+
+Dockerfile*
+docker-compose.override.yml
+
+logs/
+*.log
+
+.vscode/settings.json
+
+.next

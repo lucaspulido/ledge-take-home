@@ -1,0 +1,108 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Order {
+  id              Int      @id @default(autoincrement())
+  northwindId     Int      @unique
+  fingerprint     String   @unique
+
+  customerId      String
+
+  orderDate       DateTime
+  requiredDate    DateTime?
+  shippedDate     DateTime?
+
+  freight         Decimal @db.Decimal(10,2)
+  totalAmount     Decimal @db.Decimal(10,2)
+
+  hasExceptions   Boolean @default(false)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  lines           OrderLine[]
+  exceptions      ProcessingException[]
+
+  @@index([customerId, orderDate])
+  @@index([customerId])
+  @@index([orderDate])
+}
+
+model OrderLine {
+  id              Int @id @default(autoincrement())
+
+  orderId         Int
+  productId       Int
+
+  productName     String?
+
+  quantity        Int
+
+  unitPrice       Decimal @db.Decimal(10,2)
+  discountRate    Decimal @db.Decimal(5,2)
+  lineTotal       Decimal @db.Decimal(10,2)
+
+  order           Order @relation(fields: [orderId], references: [id])
+
+  @@index([orderId])
+}
+
+model ProcessingException {
+  id              Int @id @default(autoincrement())
+
+  orderId         Int
+
+  stage           PipelineStage
+
+  reasonCode      String
+
+  message         String
+
+  metadata        Json?
+
+  createdAt       DateTime @default(now())
+
+  order           Order @relation(fields: [orderId], references: [id])
+
+  @@index([orderId])
+}
+
+model PipelineRun {
+  id                    Int @id @default(autoincrement())
+
+  correlationId         String @unique
+
+  startedAt             DateTime
+  finishedAt            DateTime?
+
+  status                PipelineRunStatus
+
+  recordsRead           Int
+  recordsProcessed      Int
+  recordsFailed         Int
+  duplicatesSkipped     Int
+
+  createdAt             DateTime @default(now())
+}
+
+enum PipelineRunStatus {
+  FULLCOMPLETED
+  PARTIALLYCOMPLETED
+  FAILED
+}
+
+enum PipelineStage {
+  INGEST
+  VALIDATE
+  NORMALIZE
+  DEDUPE
+  CONSISTENCY_CHECK
+  PERSIST
+}
+
