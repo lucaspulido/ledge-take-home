@@ -147,38 +147,6 @@ export class OrdersRepository {
 
           });
 
-        if (
-          order.exceptions.length > 0
-        ) {
-
-          await tx.processingException.createMany({
-
-            data:
-              order.exceptions.map(
-                exception => ({
-
-                  orderId:
-                    prismaOrder.id,
-
-                  stage:
-                    exception.stage,
-
-                  reasonCode:
-                    exception.reasonCode,
-
-                  message:
-                    exception.message,
-
-                  metadata:
-                    exception.metadata as any,
-
-                })
-              ),
-
-          });
-
-        }
-
         return tx.order.findUniqueOrThrow({
 
           where: {

@@ -21,6 +21,7 @@ export class OrderMapper {
   ): Order {
 
     const order = new Order({
+      id: prismaOrder.id,
       northwindId: prismaOrder.northwindId,
       customerId: prismaOrder.customerId,
       orderDate: prismaOrder.orderDate,

@@ -5,6 +5,8 @@ import { ProcessingException } from './processing-exception';
 
 export class Order {
 
+  id?:number;
+
   northwindId!: number;
 
   fingerprint!: string;
