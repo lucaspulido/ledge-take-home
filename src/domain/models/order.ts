@@ -23,6 +23,10 @@ export class Order {
 
   hasExceptions: boolean = false;
 
+  createdAt?:Date;
+
+  updatedAt?:Date;
+
   lines: OrderLine[] = [];
 
   exceptions: ProcessingException[] = [];

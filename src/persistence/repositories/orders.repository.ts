@@ -1,125 +1,252 @@
-import { prisma } from '../prisma/client';
+import { prisma } from '../prisma/prisma-client';
 
 import { Order } from '../../domain/models/order';
+
+import { OrderLine } from '../../domain/models/order-line';
+
+import { OrderMapper }
+  from '../mappers/order.mapper';
 
 export class OrdersRepository {
 
   async findFingerprint(
     fingerprint: string
-  ) {
+  ): Promise<boolean> {
 
-    return prisma.order.findUnique({
-      where: {
-        fingerprint
-      }
-    });
+    const order =
+      await prisma.order.findUnique({
 
+        where: {
+          fingerprint,
+        },
+
+      });
+
+    return !!order;
   }
-
 
   async findSimilarOrders(
     customerId: string,
-    totalAmount: number
+    totalAmount: number,
+    orderDate: Date
   ) {
 
-    return prisma.order.findMany({
+    const startDate = new Date(
+      orderDate.getTime()
+      - 7 * 24 * 60 * 60 * 1000
+    );
 
-      where: {
+    const endDate = new Date(
+      orderDate.getTime()
+      + 7 * 24 * 60 * 60 * 1000
+    );
 
-        customerId,
+    const orders =
+      await prisma.order.findMany({
 
-        totalAmount: {
+        where: {
 
-          gte: totalAmount - 0.01,
+          customerId,
 
-          lte: totalAmount + 0.01
+          totalAmount: {
+            gte: totalAmount - 0.01,
+            lte: totalAmount + 0.01,
+          },
 
-        }
+          orderDate: {
+            gte: startDate,
+            lte: endDate,
+          },
 
-      }
+        },
 
-    });
+      });
 
+    return orders.map(order => ({
+      customerId: order.customerId,
+      orderDate: order.orderDate,
+      totalAmount: Number(order.totalAmount),
+      fingerprint: order.fingerprint,
+    }));
   }
-
 
   async create(
-    data: any
-  ) {
-
-    return prisma.order.create({
-      data
-    });
-
-  }
-
-
-  async save(
     order: Order
-  ) {
+  ): Promise<Order> {
 
-    return prisma.order.create({
+    const createdOrder =
+      await prisma.$transaction(async tx => {
 
-      data: {
+        const prismaOrder =
+          await tx.order.create({
 
-        northwindId:
-          order.northwindId,
+            data: {
 
-        fingerprint:
-          order.fingerprint,
+              northwindId:
+                order.northwindId,
 
-        customerId:
-          order.customerId,
+              fingerprint:
+                order.fingerprint,
 
-        orderDate:
-          order.orderDate,
+              customerId:
+                order.customerId,
 
-        requiredDate:
-          order.requiredDate,
+              orderDate:
+                order.orderDate,
 
-        shippedDate:
-          order.shippedDate,
+              requiredDate:
+                order.requiredDate,
 
-        freight:
-          order.freight,
+              shippedDate:
+                order.shippedDate,
 
-        totalAmount:
-          order.totalAmount,
+              freight:
+                order.freight,
 
-        hasExceptions:
-          order.hasExceptions,
+              totalAmount:
+                order.totalAmount,
 
-        lines: {
+              hasExceptions:
+                order.hasExceptions,
 
-          create:
+              lines: {
 
-          order.lines.map(line => ({
+                create:
+                  order.lines.map(
+                    (line: OrderLine) => ({
 
-            productId:
-              line.productId,
+                      productId:
+                        line.productId,
 
-            productName:
-              line.productName,
+                      productName:
+                        line.productName,
 
-            quantity:
-              line.quantity,
+                      quantity:
+                        line.quantity,
 
-            unitPrice:
-              line.unitPrice,
+                      unitPrice:
+                        line.unitPrice,
 
-            discountRate:
-              line.discountRate,
+                      discountRate:
+                        line.discountRate,
 
-            lineTotal:
-              line.lineTotal
+                      lineTotal:
+                        line.lineTotal,
 
-          }))
+                    })
+                  ),
+
+              },
+
+            },
+
+            include: {
+              lines: true,
+              exceptions: true,
+            },
+
+          });
+
+        if (
+          order.exceptions.length > 0
+        ) {
+
+          await tx.processingException.createMany({
+
+            data:
+              order.exceptions.map(
+                exception => ({
+
+                  orderId:
+                    prismaOrder.id,
+
+                  stage:
+                    exception.stage,
+
+                  reasonCode:
+                    exception.reasonCode,
+
+                  message:
+                    exception.message,
+
+                  metadata:
+                    exception.metadata as any,
+
+                })
+              ),
+
+          });
 
         }
 
-      }
+        return tx.order.findUniqueOrThrow({
 
-    });
+          where: {
+            id: prismaOrder.id,
+          },
+
+          include: {
+            lines: true,
+            exceptions: true,
+          },
+
+        });
+
+      });
+
+    return OrderMapper.toDomain(
+      createdOrder
+    );
+
+  }
+
+  async findAll(): Promise<Order[]> {
+
+    const orders =
+      await prisma.order.findMany({
+
+        include: {
+          lines: true,
+          exceptions: true,
+        },
+
+        orderBy: {
+          orderDate: 'desc',
+        },
+
+      });
+
+    return orders.map(
+      OrderMapper.toDomain
+    );
+
+  }
+
+  async findByNorthwindId(
+    northwindId: number
+  ): Promise<Order | null> {
+
+    const order =
+      await prisma.order.findUnique({
+
+        where: {
+          northwindId,
+        },
+
+        include: {
+          lines: true,
+          exceptions: true,
+        },
+
+      });
+
+    if (!order) {
+      return null;
+    }
+
+    return OrderMapper.toDomain(
+      order
+    );
 
   }
 

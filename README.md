@@ -27,6 +27,7 @@ Detailed design documentation can be found here:
 
 - `docs/architecture.md` — system architecture and pipeline design
 - `docs/database.md` — database design and modeling decisions
+- `docs/domain.md` — canonical domain model and business rules
 
 ---
 
@@ -118,6 +119,7 @@ X-API-KEY: local-dev-key
 - Exception tracking with flexible reason codes
 - Pipeline execution observability
 - Dockerized local environment
+- Explicit pipeline stages and separation of concerns
 
 ---
 
