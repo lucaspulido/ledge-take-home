@@ -62,7 +62,7 @@ export class OrdersRepository {
 
       });
 
-    return orders.map(order => ({
+    return orders.map((order:any) => ({
       customerId: order.customerId,
       orderDate: order.orderDate,
       totalAmount: Number(order.totalAmount),
@@ -75,7 +75,7 @@ export class OrdersRepository {
   ): Promise<Order> {
 
     const createdOrder =
-      await prisma.$transaction(async tx => {
+      await prisma.$transaction(async (tx:any) => {
 
         const prismaOrder =
           await tx.order.create({

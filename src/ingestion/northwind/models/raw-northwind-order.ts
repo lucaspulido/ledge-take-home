@@ -4,12 +4,12 @@ export interface RawNorthwindOrder {
 
   customerId:string;
 
-  orderDate:string | null;
+  orderDate:string;
 
-  requiredDate:string | null;
+  requiredDate:string|null;
 
-  shippedDate:string | null;
+  shippedDate:string|null;
 
-  freight:number | null;
+  freight:number;
 
 }

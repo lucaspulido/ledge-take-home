@@ -22,6 +22,11 @@ services:
       postgres:
         condition: service_healthy
 
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/northwind
+      API_KEY: ledge-local-development-key
+      PORT: 3000
+
     command: npm run dev
 
   postgres:
@@ -36,7 +41,6 @@ services:
       - "5432:5432"
 
     environment:
-
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: northwind

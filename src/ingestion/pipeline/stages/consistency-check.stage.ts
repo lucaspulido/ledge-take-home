@@ -1,15 +1,16 @@
-import {PipelineStage}
+import { PipelineStage }
 from '../types';
 
-import {PipelineContext}
+import { PipelineContext }
 from '../types';
 
 import {
-    validateTotalConsistency
-} from '../../../domain/rules/total-consistency.rule';
+  checkConsistency
+}
+from '../../../domain/rules/consistency.rule';
 
 export class ConsistencyCheckStage
-implements PipelineStage{
+implements PipelineStage {
 
   async execute(
     context:PipelineContext
@@ -19,20 +20,25 @@ implements PipelineStage{
       'Starting consistency-check stage'
     );
 
-    for(const order of context.orders){
+    for(
+      const order of context.orders
+    ){
 
       const exceptions=
-        validateTotalConsistency(
-          order
+        checkConsistency(order);
+
+      if(
+        exceptions.length > 0
+      ){
+
+        order.hasExceptions=
+          true;
+
+        context.exceptions.push(
+          ...exceptions
         );
 
-      order.exceptions.push(
-        ...exceptions
-      );
-
-      context.exceptions.push(
-        ...exceptions
-      );
+      }
 
     }
 
@@ -41,7 +47,7 @@ implements PipelineStage{
       exceptions:
         context.exceptions.length
 
-    },'Consistency-check stage completed');
+    }, 'Consistency-check stage completed');
 
   }
 

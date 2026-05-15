@@ -1,27 +1,28 @@
-import {PipelineStage}
+import { PipelineStage }
 from '../types';
 
-import {PipelineContext}
+import { PipelineContext }
 from '../types';
 
 import {
-  openNorthwindConnection
+  NorthwindReader
 } from '../../northwind/sqlite-reader';
 
 import {
-  mapRawOrderToDomain
+  mapNorthwindOrders
 } from '../../northwind/mapper';
 
-import {
-  RawNorthwindOrder
-} from '../../northwind/models/raw-northwind-order';
-
-import {
-  RawNorthwindOrderLine
-} from '../../northwind/models/raw-northwind-order-line';
+import { Order }
+from '../../../domain/models/order';
 
 export class IngestStage
-implements PipelineStage{
+implements PipelineStage {
+
+  constructor(
+
+    private readonly northwindReader:NorthwindReader
+
+  ) {}
 
   async execute(
     context:PipelineContext
@@ -31,63 +32,33 @@ implements PipelineStage{
       'Starting ingest stage'
     );
 
-    const db=
-      await openNorthwindConnection();
-
-    const rawOrders=
-      await db.all<RawNorthwindOrder[]>(`
-
-        SELECT
-          OrderID as orderId,
-          CustomerID as customerId,
-          OrderDate as orderDate,
-          RequiredDate as requiredDate,
-          ShippedDate as shippedDate,
-          Freight as freight
-        FROM Orders
-
-      `);
-
-    const rawOrderLines=
-      await db.all<RawNorthwindOrderLine[]>(`
-
-        SELECT
-          od.OrderID as orderId,
-          od.ProductID as productId,
-          p.ProductName as productName,
-          od.Quantity as quantity,
-          od.UnitPrice as unitPrice,
-          od.Discount as discount
-        FROM "Order Details" od
-        INNER JOIN Products p
-          ON p.ProductID=od.ProductID
-
-      `);
-
     context.rawOrders=
-      rawOrders;
+      await this.northwindReader
+      .readOrders();
 
     context.rawOrderLines=
-      rawOrderLines;
+      await this.northwindReader
+      .readOrderLines();
 
     context.orders=
-      rawOrders.map(order=>{
+      mapNorthwindOrders(
 
-        const lines=
-          rawOrderLines.filter(
+        context.rawOrders,
 
-            line=>
-              line.orderId===
-              order.orderId
+        context.rawOrderLines
 
-          );
+      );
 
-        return mapRawOrderToDomain(
-          order,
-          lines
-        );
+    if(
+      process.env.NODE_ENV===
+      'development'
+    ){
 
-      });
+      this.injectTestInconsistencies(
+        context.orders
+      );
+
+    }
 
     context.metrics.recordsRead=
       context.orders.length;
@@ -97,9 +68,63 @@ implements PipelineStage{
       recordsRead:
         context.metrics.recordsRead
 
-    },'Ingest stage completed');
+    }, 'Ingest stage completed');
 
-    await db.close();
+  }
+
+  private injectTestInconsistencies(
+    orders:Order[]
+  ):void{
+
+    const freightOrder=
+      orders.find(
+        order=>
+          order.northwindId===10248
+      );
+
+    if(freightOrder){
+
+      freightOrder.freight=
+        freightOrder.totalAmount+1000;
+
+    }
+
+    const shippingOrder=
+      orders.find(
+        order=>
+          order.northwindId===10249
+      );
+
+    if(
+      shippingOrder &&
+      shippingOrder.orderDate
+    ){
+
+      shippingOrder.shippedDate=
+        new Date(
+
+          shippingOrder.orderDate
+          .getTime()-86400000
+
+        );
+
+    }
+
+    const discountOrder=
+      orders.find(
+        order=>
+          order.northwindId===10250
+      );
+
+    if(
+      discountOrder &&
+      discountOrder.lines.length>0
+    ){
+
+      discountOrder.lines[0]
+      .discountRate=0.9;
+
+    }
 
   }
 
