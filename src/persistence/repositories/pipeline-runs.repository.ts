@@ -1,92 +1,83 @@
-import { prisma } from '../prisma/prisma-client';
+import { prisma }
+from '../prisma/prisma-client';
 
 import { PipelineRun }
-  from '../../domain/models/pipeline-run';
+from '../../domain/models/pipeline-run';
 
 export class PipelineRunsRepository {
 
   async create(
-    run: PipelineRun
-  ) {
+    pipelineRun:PipelineRun
+  ):Promise<void>{
 
-    return prisma.pipelineRun.create({
+    await prisma.pipelineRun.create({
 
-      data: {
+      data:{
 
         correlationId:
-          run.correlationId,
+          pipelineRun.correlationId,
 
         startedAt:
-          run.startedAt,
+          pipelineRun.startedAt,
 
         finishedAt:
-          run.finishedAt,
+          pipelineRun.finishedAt,
 
         status:
-          run.status,
+          pipelineRun.status,
 
         recordsRead:
-          run.recordsRead,
+          pipelineRun.recordsRead,
 
         recordsProcessed:
-          run.recordsProcessed,
+          pipelineRun.recordsProcessed,
 
         recordsFailed:
-          run.recordsFailed,
+          pipelineRun.recordsFailed,
 
         duplicatesSkipped:
-          run.duplicatesSkipped,
+          pipelineRun.duplicatesSkipped
 
-      },
+      }
 
     });
 
   }
 
   async update(
-    run: PipelineRun
-  ) {
+    pipelineRun:PipelineRun
+  ):Promise<void>{
 
-    return prisma.pipelineRun.update({
+    await prisma.pipelineRun.update({
 
-      where: {
+      where:{
+
         correlationId:
-          run.correlationId,
+          pipelineRun.correlationId
+
       },
 
-      data: {
+      data:{
 
         finishedAt:
-          run.finishedAt,
+          pipelineRun.finishedAt,
 
         status:
-          run.status,
+          pipelineRun.status,
 
         recordsRead:
-          run.recordsRead,
+          pipelineRun.recordsRead,
 
         recordsProcessed:
-          run.recordsProcessed,
+          pipelineRun.recordsProcessed,
 
         recordsFailed:
-          run.recordsFailed,
+          pipelineRun.recordsFailed,
 
         duplicatesSkipped:
-          run.duplicatesSkipped,
+          pipelineRun.duplicatesSkipped
 
-      },
-
-    });
-
-  }
-
-  async findLatest() {
-
-    return prisma.pipelineRun.findFirst({
-
-      orderBy: {
-        startedAt: 'desc',
-      },
+      }
 
     });
 

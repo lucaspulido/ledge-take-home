@@ -1,21 +1,89 @@
 import sqlite3 from 'sqlite3';
 
-import {open} from 'sqlite';
+import { open }
+from 'sqlite';
+
+import path from 'path';
 
 import {
-  NORTHWIND_DB_PATH
-} from './constants';
+  RawNorthwindOrder
+} from './models/raw-northwind-order';
 
-export async function openNorthwindConnection(){
+import {
+  RawNorthwindOrderLine
+} from './models/raw-northwind-order-line';
 
-  return open({
+export class NorthwindReader {
 
-    filename:
-      NORTHWIND_DB_PATH,
+  private readonly dbPath=
+    path.resolve(
+      'data/northwind.db'
+    );
 
-    driver:
-      sqlite3.Database
+  async readOrders():
+  Promise<RawNorthwindOrder[]>{
 
-  });
+    const db=
+      await open({
+
+        filename:this.dbPath,
+
+        driver:sqlite3.Database
+
+      });
+
+    const orders=
+      await db.all<RawNorthwindOrder[]>(`
+
+        SELECT
+          OrderID as orderId,
+          CustomerID as customerId,
+          OrderDate as orderDate,
+          RequiredDate as requiredDate,
+          ShippedDate as shippedDate,
+          Freight as freight
+        FROM Orders
+
+      `);
+
+    await db.close();
+
+    return orders;
+
+  }
+
+  async readOrderLines():
+  Promise<RawNorthwindOrderLine[]>{
+
+    const db=
+      await open({
+
+        filename:this.dbPath,
+
+        driver:sqlite3.Database
+
+      });
+
+    const orderLines=
+      await db.all<RawNorthwindOrderLine[]>(`
+
+        SELECT
+          od.OrderID as orderId,
+          od.ProductID as productId,
+          p.ProductName as productName,
+          od.UnitPrice as unitPrice,
+          od.Quantity as quantity,
+          od.Discount as discount
+        FROM "Order Details" od
+        JOIN Products p
+          ON p.ProductID=od.ProductID
+
+      `);
+
+    await db.close();
+
+    return orderLines;
+
+  }
 
 }

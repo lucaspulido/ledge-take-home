@@ -1,11 +1,8 @@
-import {Order} from '../../domain/models/order';
+import { Order }
+from '../../domain/models/order';
 
-import {OrderLine}
+import { OrderLine }
 from '../../domain/models/order-line';
-
-import {
-  generateFingerprint
-} from '../../domain/rules/duplicate.rule';
 
 import {
   RawNorthwindOrder
@@ -15,86 +12,131 @@ import {
   RawNorthwindOrderLine
 } from './models/raw-northwind-order-line';
 
-export function mapRawOrderToDomain(
+export function mapNorthwindOrders(
 
-  rawOrder:RawNorthwindOrder,
+  rawOrders:RawNorthwindOrder[],
 
-  rawLines:RawNorthwindOrderLine[]
+  rawOrderLines:RawNorthwindOrderLine[]
 
-):Order{
+):Order[]{
 
-  const lines=
-    rawLines.map(line=>
+  /*
+    Pre-group lines by orderId
+    to avoid O(n²) filtering.
+  */
 
-      new OrderLine({
+  const linesByOrderId=
+    new Map<
+      number,
+      RawNorthwindOrderLine[]
+    >();
 
-        productId:
-          line.productId,
+  for(const line of rawOrderLines){
 
-        productName:
-          line.productName,
+    const existing=
 
-        quantity:
-          line.quantity,
+      linesByOrderId.get(
+        line.orderId
+      ) ?? [];
 
-        unitPrice:
-          line.unitPrice,
+    existing.push(line);
 
-        discountRate:
-          line.discount,
-
-        lineTotal:
-          line.quantity*
-          line.unitPrice*
-          (1-line.discount)
-
-      })
-
+    linesByOrderId.set(
+      line.orderId,
+      existing
     );
 
-  const totalAmount=
-    lines.reduce(
-      (sum,line)=>
-        sum+line.lineTotal,
-      0
-    );
+  }
 
-  const order=
-    new Order({
+  return rawOrders.map(rawOrder=>{
 
-      northwindId:
-        rawOrder.orderId,
+    const rawLines=
 
-      customerId:
-        rawOrder.customerId,
+      linesByOrderId.get(
+        rawOrder.orderId
+      ) ?? [];
 
-      orderDate:
-        new Date(
-          rawOrder.orderDate!
-        ),
+    const lines=
+      rawLines.map(line=>{
 
-      requiredDate:
-        rawOrder.requiredDate
-          ?new Date(rawOrder.requiredDate)
-          :undefined,
+        const lineTotal=
 
-      shippedDate:
-        rawOrder.shippedDate
-          ?new Date(rawOrder.shippedDate)
-          :undefined,
+          line.quantity
+          *
+          line.unitPrice
+          *
+          (1-line.discount);
 
-      freight:
-        rawOrder.freight ?? 0,
+        return new OrderLine({
 
-      totalAmount,
+          productId:
+            line.productId,
 
-      lines
+          productName:
+            line.productName,
 
-    });
+          quantity:
+            line.quantity,
 
-  order.fingerprint=
-    generateFingerprint(order);
+          unitPrice:
+            Number(line.unitPrice),
 
-  return order;
+          discountRate:
+            Number(line.discount),
+
+          lineTotal:
+            Number(
+              lineTotal.toFixed(2)
+            )
+
+        });
+
+      });
+
+    const order=
+      new Order({
+
+        northwindId:
+          rawOrder.orderId,
+
+        customerId:
+          rawOrder.customerId,
+
+        orderDate:
+          new Date(
+            rawOrder.orderDate
+          ),
+
+        requiredDate:
+          rawOrder.requiredDate
+            ?new Date(
+              rawOrder.requiredDate
+            )
+            :undefined,
+
+        shippedDate:
+          rawOrder.shippedDate
+            ?new Date(
+              rawOrder.shippedDate
+            )
+            :undefined,
+
+        freight:
+          Number(
+            rawOrder.freight ?? 0
+          ),
+
+        totalAmount:0,
+
+        lines
+
+      });
+
+    order.totalAmount=
+      order.calculateExpectedTotal();
+
+    return order;
+
+  });
 
 }
