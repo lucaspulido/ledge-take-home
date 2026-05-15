@@ -1,0 +1,8 @@
+// src/domain/models/exception-reason-code.ts
+
+export enum ExceptionReasonCode {
+  INVALID_DATE="INVALID_DATE",
+  TOTAL_MISMATCH="TOTAL_MISMATCH",
+  INVALID_DISCOUNT="INVALID_DISCOUNT",
+  POSSIBLE_DUPLICATE="POSSIBLE_DUPLICATE"
+}

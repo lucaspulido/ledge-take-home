@@ -140,8 +140,8 @@ Responsibilities:
 
 Detect:
 
-- exact duplicates
-- possible duplicate candidates
+- exact duplicates (skipped, registered in the table PipelineRun)
+- possible duplicate candidates (registered with with a related exception)
 
 This stage reads existing database content to guarantee idempotency.
 
