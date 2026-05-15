@@ -60,11 +60,11 @@ export class DedupeService {
     */
 
     const dbOrders =
-      await this.ordersRepository
-        .findSimilarOrders(
-          order.customerId,
-          order.totalAmount
-        );
+      await this.ordersRepository.findSimilarOrders(
+        order.customerId,
+        order.totalAmount,
+        order.orderDate
+      )
 
     /*
       Prisma returns Decimal.
