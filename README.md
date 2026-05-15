@@ -100,6 +100,31 @@ npx prisma studio
 ```
 
 ---
+## Northwind Source Verification
+
+The project uses the official fixed Northwind SQLite dataset provided in the challenge instructions.
+
+Download the source database:
+
+```bash
+npm run download:northwind
+```
+
+Verify integrity and SHA-256 checksum:
+
+```bash
+npm run verify:northwind
+```
+
+Expected SHA-256:
+
+```txt
+2f4f5c68dfcd33ba27373eae48c7a4869800c68095ee0f9f0da494f83382a877
+```
+
+The database file is intentionally excluded from version control and treated as an immutable external source.
+
+---
 
 ## API Authentication
 
@@ -120,6 +145,7 @@ X-API-KEY: local-dev-key
 - Pipeline execution observability
 - Dockerized local environment
 - Explicit pipeline stages and separation of concerns
+- Reproducible source download and SHA-256 verification
 
 ---
 

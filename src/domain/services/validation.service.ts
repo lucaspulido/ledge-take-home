@@ -8,7 +8,7 @@ import {
 
 import {
   validateShippingDates
-} from '../rules/shipping.rule';
+} from '../rules/shipping-date.rule';
 
 import {
   validateTotalConsistency

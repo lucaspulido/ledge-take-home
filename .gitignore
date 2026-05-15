@@ -246,3 +246,4 @@ logs/
 .vscode/settings.json
 
 .next
+data/
