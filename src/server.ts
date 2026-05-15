@@ -19,16 +19,12 @@ import pipelineRoutes
 from './api/routes/pipeline.routes';
 
 import {
-
   apiRoutes
-
 }
 from './api/routes';
 
 import {
-
   apiKeyMiddleware
-
 }
 from './api/middleware/api-key.middleware';
 
@@ -47,18 +43,17 @@ app.use(
   helmet()
 );
 
-  app.use(
+app.use(
 
-    '/api/docs',
+  '/api/docs',
 
-    swaggerUi.serve,
+  swaggerUi.serve,
 
-    swaggerUi.setup(
-      swaggerSpec
-    )
+  swaggerUi.setup(
+    swaggerSpec
+  )
 
-  );
-
+);
 
 /*
   Protected API routes
@@ -78,16 +73,24 @@ app.use(
   pipelineRoutes
 );
 
-const PORT=
-  process.env.PORT || 3000;
+export default app;
 
-app.listen(
-  PORT,
-  ()=>{
+if(
+  require.main===module
+){
 
-    console.log(
-      `Server running on port ${PORT}`
-    );
+  const PORT=
+    process.env.PORT || 3000;
 
-  }
-);
+  app.listen(
+    PORT,
+    ()=>{
+
+      console.log(
+        `Server running on port ${PORT}`
+      );
+
+    }
+  );
+
+}

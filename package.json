@@ -16,7 +16,8 @@
     "download:northwind": "ts-node scripts/download-northwind.ts",
     "verify:northwind": "ts-node scripts/verify-northwind.ts",
     "pipeline": "ts-node scripts/run-pipeline.ts",
-    "test:integration": "jest tests/integration --runInBand"
+    "test:integration": "jest tests/integration --runInBand",
+    "test:e2e": "jest tests/e2e --runInBand"
   },
   "repository": {
     "type": "git",

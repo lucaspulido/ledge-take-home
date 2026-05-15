@@ -127,7 +127,7 @@ Detailed design documentation can be found in:
 
 Install:
 
-- Node.js 24+
+- Node.js 22+
 - Docker
 - Docker Compose
 
@@ -162,7 +162,9 @@ API_KEY=ledge-local-development-key
 
 LOG_LEVEL=debug
 ```
+When running inside Docker containers, Prisma uses the internal PostgreSQL hostname configured through Docker networking.
 
+The provided Docker configuration already handles this automatically through environment overrides.
 ---
 
 ## Quickstart
@@ -393,6 +395,11 @@ npm test
 npm run test:integration
 ```
 
+### Run E2E tests
+
+```bash
+npm run test:e2e
+```
 ---
 
 ## Test Coverage
