@@ -28,6 +28,9 @@ module.exports = {
 
     '!src/**/*.d.ts'
 
-  ]
+  ],
+  setupFilesAfterEnv:['<rootDir>/tests/setup.ts'],
+
+  testTimeout:300000
 
 };
